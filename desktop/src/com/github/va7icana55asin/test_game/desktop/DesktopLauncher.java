@@ -7,6 +7,7 @@ import com.github.va7icana55asin.test_game.Main;
 public class DesktopLauncher {
 	public static void main (String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
+		config.title = "Test Game";
 		new LwjglApplication(new Main(), config);
 	}
 }
