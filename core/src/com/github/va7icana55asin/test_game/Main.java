@@ -5,8 +5,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class Main extends Game {
-	SpriteBatch batch;
-	BitmapFont font;
+	protected SpriteBatch batch;
+	protected BitmapFont font;
 	
 	@Override
 	public void create () {
