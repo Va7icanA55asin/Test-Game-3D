@@ -31,20 +31,20 @@ public class GameScreen implements Screen {
     private Array<Projectile> projectiles;
     private long lastLaunchTime;
     private int health;
-    private float timer;
-    //private int difficulty; //will change with difficulty as will speed and timer. This will probably become a argument in the constructor
-    //private int speed;
+    private int timer;
+    private long lastTime;
+    private int speed;
+    private int launchFrequency;
     //private ArrayList<Rectangle> powerUps;
 
     /*
-    TODO Modify title screen to select difficulty (This will take some figuring out) (Will increase spawn amount and time to win and decrease time between spawns for harder difficulties)
-    TODO Change backgrounds to something. Maybe an image
-    TODO See if gifs can be used. (Use "You Died" from dark souls if possible)(Actually might not be a good idea)(Maybe make a spoof)
     TODO Maybe eventually add power-ups
+    TODO Modify title screen to select difficulty (This will take some figuring out) (These two will need scene2D for buttons)
     TODO Maybe add settings for on the main menu (Would have to be written to file)
+    TODO Replace all hard screen size reference numbers to a variable when settings are determined
      */
 
-    public GameScreen(final Main game) {
+    public GameScreen(final Main game, DIFFICULTY difficulty) {
         this.game = game;
 
         camera = new OrthographicCamera();
@@ -64,38 +64,76 @@ public class GameScreen implements Screen {
         rectangle.width = 32;
         rectangle.height = 32;
 
-        //Have switch for difficulty here
-        timer = 90; //Should be in seconds
-        health = 5;
+        switch(difficulty){
+            case BABY:
+                timer = 90;
+                health = 5;
+                speed = 200;
+                launchFrequency = 1000000000;
+                break;
 
+            case EASY:
+                timer = 120;
+                health = 4;
+                speed = 225;
+                launchFrequency = 750000000;
+                break;
+
+            case MEDIUM:
+                timer = 150;
+                health = 3;
+                speed = 250;
+                launchFrequency = 500000000;
+                break;
+
+            case HARD:
+                timer = 180;
+                health = 2;
+                speed = 275;
+                launchFrequency = 250000000;
+                break;
+
+            case EXTREME:
+                timer = 210;
+                health =1;
+                speed = 300;
+                launchFrequency = 10000000;
+                break;
+        }
+
+        lastTime = TimeUtils.nanoTime();
         projectiles = new Array<Projectile>();
-        spawnProjectiles();
+        spawnProjectile();
     }
 
-    private void spawnProjectiles(){
+    private void spawnProjectile(){
         Projectile projectile = new Projectile();
         int side = MathUtils.random(1,4);
         switch(side){
             case 1: //Bottom of the screen
                 projectile.direction = Projectile.DIRECTION.UP;
+                projectile.texture = projectileSpriteUp;
                 projectile.x = MathUtils.random(0,640-32);
                 projectile.y = 0;
                 break;
 
             case 2: //Left side of the screen
                 projectile.direction = Projectile.DIRECTION.RIGHT;
+                projectile.texture = projectileSpriteRight;
                 projectile.x = 0;
                 projectile.y = MathUtils.random(0,480-32);
                 break;
 
             case 3: //Right side of the screen
                 projectile.direction = Projectile.DIRECTION.LEFT;
+                projectile.texture = projectileSpriteLeft;
                 projectile.x = 640;
                 projectile.y = MathUtils.random(0,480-32);
                 break;
 
             case 4: //Top of the screen
                 projectile.direction = Projectile.DIRECTION.DOWN;
+                projectile.texture = projectileSpriteDown;
                 projectile.x = MathUtils.random(0,640-32);
                 projectile.y = 480;
                 break;
@@ -120,28 +158,10 @@ public class GameScreen implements Screen {
             game.batch.setProjectionMatrix(camera.combined);
             game.batch.begin();
             game.font.draw(game.batch, "Health: " + health, 0, 480); //Draw the health counter or meter. Meter would probably require various textures and a switch statement
-            game.font.draw(game.batch, "Time Remaining: " + (int) timer + " seconds", 0, 460); //Draw the timer
+            game.font.draw(game.batch, "Time Remaining: " + timer + " seconds", 0, 460); //Draw the timer
             game.batch.draw(playerSprite, rectangle.x, rectangle.y);
             for (Projectile projectile : projectiles) {
-                Texture projectileTexture = null;
-                switch (projectile.direction) {
-                    case UP:
-                        projectileTexture = projectileSpriteUp;
-                        break;
-
-                    case DOWN:
-                        projectileTexture = projectileSpriteDown;
-                        break;
-
-                    case RIGHT:
-                        projectileTexture = projectileSpriteRight;
-                        break;
-
-                    case LEFT:
-                        projectileTexture = projectileSpriteLeft;
-                        break;
-                }
-                game.batch.draw(projectileTexture, projectile.x, projectile.y);
+                game.batch.draw(projectile.texture, projectile.x, projectile.y);
             }
             game.batch.end();
 
@@ -185,9 +205,8 @@ public class GameScreen implements Screen {
                 rectangle.y = 480 - 32;
             }
 
-            if (TimeUtils.nanoTime() - lastLaunchTime > 1000000000) { //This number will change for varying difficulty
-                timer--;
-                spawnProjectiles();
+            if(TimeUtils.nanoTime() - lastLaunchTime > launchFrequency){
+                spawnProjectile();
             }
 
             Iterator<Projectile> iter = projectiles.iterator();
@@ -195,28 +214,28 @@ public class GameScreen implements Screen {
                 Projectile projectile = iter.next();
                 switch (projectile.direction) {
                     case UP:
-                        projectile.y += 200 * Gdx.graphics.getDeltaTime(); //These speeds will change with difficulty
+                        projectile.y += speed * Gdx.graphics.getDeltaTime(); //These speeds will change with difficulty
                         if (projectile.y + 32 > 480) {
                             iter.remove();
                         }
                         break;
 
                     case DOWN:
-                        projectile.y -= 200 * Gdx.graphics.getDeltaTime();
+                        projectile.y -= speed * Gdx.graphics.getDeltaTime();
                         if (projectile.y + 32 < 0) {
                             iter.remove();
                         }
                         break;
 
                     case LEFT:
-                        projectile.x -= 200 * Gdx.graphics.getDeltaTime();
+                        projectile.x -= speed * Gdx.graphics.getDeltaTime();
                         if (projectile.x + 32 < 0) {
                             iter.remove();
                         }
                         break;
 
                     case RIGHT:
-                        projectile.x += 200 * Gdx.graphics.getDeltaTime();
+                        projectile.x += speed * Gdx.graphics.getDeltaTime();
                         if (projectile.x + 32 > 640) {
                             iter.remove();
                         }
@@ -230,6 +249,11 @@ public class GameScreen implements Screen {
                         game.setScreen(new GameOverScreen(game));
                         dispose();
                     }
+                }
+
+                if(TimeUtils.nanoTime() - lastTime > 1000000000){
+                    timer--;
+                    lastTime = TimeUtils.nanoTime();
                 }
             }
         }
