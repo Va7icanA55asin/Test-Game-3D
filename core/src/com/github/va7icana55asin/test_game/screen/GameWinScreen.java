@@ -1,4 +1,4 @@
-package com.github.va7icana55asin.test_game;
+package com.github.va7icana55asin.test_game.screen;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;

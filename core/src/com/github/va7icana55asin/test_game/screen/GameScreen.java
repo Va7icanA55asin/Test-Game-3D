@@ -1,4 +1,4 @@
-package com.github.va7icana55asin.test_game;
+package com.github.va7icana55asin.test_game.screen;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -13,11 +13,16 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.github.va7icana55asin.test_game.screen.GameOverScreen;
+import com.github.va7icana55asin.test_game.screen.GameWinScreen;
+import com.github.va7icana55asin.test_game.screen.Main;
+import com.github.va7icana55asin.test_game.utility.DIFFICULTY;
+import com.github.va7icana55asin.test_game.utility.Projectile;
 
 import java.util.Iterator;
 
 public class GameScreen implements Screen {
-    private final Main game;
+    private final com.github.va7icana55asin.test_game.screen.Main game;
 
     private OrthographicCamera camera;
     private Texture playerSprite;
@@ -28,7 +33,7 @@ public class GameScreen implements Screen {
     private Music music;
     private Sound hit;
     private Rectangle rectangle;
-    private Array<Projectile> projectiles;
+    private Array<com.github.va7icana55asin.test_game.utility.Projectile> projectiles;
     private long lastLaunchTime;
     private int health;
     private int timer;
@@ -102,37 +107,37 @@ public class GameScreen implements Screen {
         }
 
         lastTime = TimeUtils.nanoTime();
-        projectiles = new Array<Projectile>();
+        projectiles = new Array<com.github.va7icana55asin.test_game.utility.Projectile>();
         spawnProjectile();
     }
 
     private void spawnProjectile(){
-        Projectile projectile = new Projectile();
+        com.github.va7icana55asin.test_game.utility.Projectile projectile = new com.github.va7icana55asin.test_game.utility.Projectile();
         int side = MathUtils.random(1,4);
         switch(side){
             case 1: //Bottom of the screen
-                projectile.direction = Projectile.DIRECTION.UP;
+                projectile.direction = com.github.va7icana55asin.test_game.utility.Projectile.DIRECTION.UP;
                 projectile.texture = projectileSpriteUp;
                 projectile.x = MathUtils.random(0,640-32);
                 projectile.y = 0;
                 break;
 
             case 2: //Left side of the screen
-                projectile.direction = Projectile.DIRECTION.RIGHT;
+                projectile.direction = com.github.va7icana55asin.test_game.utility.Projectile.DIRECTION.RIGHT;
                 projectile.texture = projectileSpriteRight;
                 projectile.x = 0;
                 projectile.y = MathUtils.random(0,480-32);
                 break;
 
             case 3: //Right side of the screen
-                projectile.direction = Projectile.DIRECTION.LEFT;
+                projectile.direction = com.github.va7icana55asin.test_game.utility.Projectile.DIRECTION.LEFT;
                 projectile.texture = projectileSpriteLeft;
                 projectile.x = 640;
                 projectile.y = MathUtils.random(0,480-32);
                 break;
 
             case 4: //Top of the screen
-                projectile.direction = Projectile.DIRECTION.DOWN;
+                projectile.direction = com.github.va7icana55asin.test_game.utility.Projectile.DIRECTION.DOWN;
                 projectile.texture = projectileSpriteDown;
                 projectile.x = MathUtils.random(0,640-32);
                 projectile.y = 480;
@@ -160,7 +165,7 @@ public class GameScreen implements Screen {
             game.font.draw(game.batch, "Health: " + health, 0, 480); //Draw the health counter or meter. Meter would probably require various textures and a switch statement
             game.font.draw(game.batch, "Time Remaining: " + timer + " seconds", 0, 460); //Draw the timer
             game.batch.draw(playerSprite, rectangle.x, rectangle.y);
-            for (Projectile projectile : projectiles) {
+            for (com.github.va7icana55asin.test_game.utility.Projectile projectile : projectiles) {
                 game.batch.draw(projectile.texture, projectile.x, projectile.y);
             }
             game.batch.end();
@@ -209,7 +214,7 @@ public class GameScreen implements Screen {
                 spawnProjectile();
             }
 
-            Iterator<Projectile> iter = projectiles.iterator();
+            Iterator<com.github.va7icana55asin.test_game.utility.Projectile> iter = projectiles.iterator();
             while (iter.hasNext()) {
                 Projectile projectile = iter.next();
                 switch (projectile.direction) {

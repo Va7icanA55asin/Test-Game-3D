@@ -1,4 +1,4 @@
-package com.github.va7icana55asin.test_game;
+package com.github.va7icana55asin.test_game.utility;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Rectangle;
