@@ -196,7 +196,7 @@ public class GameScreen implements Screen {
         }
     }
 
-    public void updateMotion(){
+    private void updateMotion(){
         if(leftMove){
             rectangle.x -= 200 * Gdx.graphics.getDeltaTime();
         }
