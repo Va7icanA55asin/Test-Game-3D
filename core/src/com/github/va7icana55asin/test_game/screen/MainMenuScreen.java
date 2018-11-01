@@ -1,8 +1,6 @@
 package com.github.va7icana55asin.test_game.screen;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.github.va7icana55asin.test_game.utility.DIFFICULTY;
@@ -29,13 +27,23 @@ public class MainMenuScreen implements Screen {
 
         game.batch.begin();
         game.font.draw(game.batch, "Welcome to Test Game!!! ", 100, 150);
-        game.font.draw(game.batch, "Tap anywhere or press \'enter\' to begin!", 100, 100);
+        game.font.draw(game.batch, "Press \'enter\' to begin!", 100, 100);
         game.batch.end();
 
-        if (Gdx.input.isTouched() || Gdx.input.isKeyPressed(Input.Keys.ENTER)) {
-            game.setScreen(new GameScreen(game, DIFFICULTY.EASY));
-            dispose();
-        }
+        setInputProcessor();
+    }
+
+    private void setInputProcessor(){
+        Gdx.input.setInputProcessor(new InputAdapter(){
+            @Override
+            public boolean keyDown(int keycode){
+                if(keycode == Input.Keys.ENTER){
+                    game.setScreen(new GameScreen(game, DIFFICULTY.EASY));
+                    dispose();
+                }
+                return true;
+            }
+        });
     }
 
     @Override

@@ -1,8 +1,6 @@
 package com.github.va7icana55asin.test_game.screen;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.*;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
@@ -10,9 +8,9 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.github.va7icana55asin.test_game.event.GameInputProcessor;
 import com.github.va7icana55asin.test_game.utility.DIFFICULTY;
 import com.github.va7icana55asin.test_game.utility.Projectile;
 
@@ -22,6 +20,10 @@ public class GameScreen implements Screen {
     private final Main game;
 
     private OrthographicCamera camera;
+    private boolean leftMove;
+    private boolean rightMove;
+    private boolean upMove;
+    private boolean downMove;
     private Texture playerSprite;
     private Texture projectileSpriteRight;
     private Texture projectileSpriteLeft;
@@ -51,6 +53,7 @@ public class GameScreen implements Screen {
 
         camera = new OrthographicCamera();
         camera.setToOrtho(false,640f,480f);
+        Gdx.input.setInputProcessor(new GameInputProcessor(this));
         playerSprite = new Texture("player.png");
         projectileSpriteRight = new Texture("projectile-right.png");
         projectileSpriteLeft = new Texture("projectile-left.png");
@@ -167,29 +170,7 @@ public class GameScreen implements Screen {
             }
             game.batch.end();
 
-            if (Gdx.input.isTouched()) {
-                Vector3 touchPos = new Vector3();
-                touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
-                camera.unproject(touchPos);
-                rectangle.x = touchPos.x - 64 / 2;
-                rectangle.y = touchPos.y - 64 / 2;
-            }
-
-            if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-                rectangle.x -= 200 * Gdx.graphics.getDeltaTime();
-            }
-
-            if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-                rectangle.x += 200 * Gdx.graphics.getDeltaTime();
-            }
-
-            if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-                rectangle.y += 200 * Gdx.graphics.getDeltaTime();
-            }
-
-            if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-                rectangle.y -= 200 * Gdx.graphics.getDeltaTime();
-            }
+            updateMotion();
 
             if (rectangle.x < 0) {
                 rectangle.x = 0;
@@ -211,52 +192,99 @@ public class GameScreen implements Screen {
                 spawnProjectile();
             }
 
-            Iterator<Projectile> iter = projectiles.iterator();
-            while (iter.hasNext()) {
-                Projectile projectile = iter.next();
-                switch (projectile.direction) {
-                    case UP:
-                        projectile.y += speed * Gdx.graphics.getDeltaTime(); //These speeds will change with difficulty
-                        if (projectile.y + 32 > 480) {
-                            iter.remove();
-                        }
-                        break;
+            moveProjectiles(projectiles);
+        }
+    }
 
-                    case DOWN:
-                        projectile.y -= speed * Gdx.graphics.getDeltaTime();
-                        if (projectile.y + 32 < 0) {
-                            iter.remove();
-                        }
-                        break;
+    public void updateMotion(){
+        if(leftMove){
+            rectangle.x -= 200 * Gdx.graphics.getDeltaTime();
+        }
+        if (rightMove){
+            rectangle.x += 200 * Gdx.graphics.getDeltaTime();
+        }
+        if (upMove){
+            rectangle.y += 200 * Gdx.graphics.getDeltaTime();
+        }
+        if (downMove){
+            rectangle.y -= 200 * Gdx.graphics.getDeltaTime();
+        }
+    }
 
-                    case LEFT:
-                        projectile.x -= speed * Gdx.graphics.getDeltaTime();
-                        if (projectile.x + 32 < 0) {
-                            iter.remove();
-                        }
-                        break;
+    public void setLeftMove(boolean bool) {
+        if(rightMove && bool){
+            rightMove = false;
+        }
+        leftMove = bool;
+    }
 
-                    case RIGHT:
-                        projectile.x += speed * Gdx.graphics.getDeltaTime();
-                        if (projectile.x + 32 > 640) {
-                            iter.remove();
-                        }
-                        break;
-                }
+    public void setRightMove(boolean bool) {
+        if(leftMove && bool){
+            leftMove = false;
+        }
+        rightMove = bool;
+    }
 
-                if (projectile.overlaps(rectangle)) {
-                    hit.play();
-                    iter.remove();
-                    if (--health <= 0) {
-                        game.setScreen(new GameOverScreen(game));
-                        dispose();
+    public void setUpMove(boolean bool) {
+        if(downMove && bool){
+            downMove = false;
+        }
+        upMove = bool;
+    }
+
+    public void setDownMove(boolean bool) {
+        if(upMove && bool){
+            upMove = false;
+        }
+        downMove = bool;
+    }
+
+    private void moveProjectiles(Array<Projectile> projectiles){
+        Iterator<Projectile> iter = projectiles.iterator();
+        while (iter.hasNext()) {
+            Projectile projectile = iter.next();
+            switch (projectile.direction) {
+                case UP:
+                    projectile.y += speed * Gdx.graphics.getDeltaTime();
+                    if (projectile.y + 32 > 480) {
+                        iter.remove();
                     }
-                }
+                    break;
 
-                if(TimeUtils.nanoTime() - lastTime > 1000000000){
-                    timer--;
-                    lastTime = TimeUtils.nanoTime();
+                case DOWN:
+                    projectile.y -= speed * Gdx.graphics.getDeltaTime();
+                    if (projectile.y + 32 < 0) {
+                        iter.remove();
+                    }
+                    break;
+
+                case LEFT:
+                    projectile.x -= speed * Gdx.graphics.getDeltaTime();
+                    if (projectile.x + 32 < 0) {
+                        iter.remove();
+                    }
+                    break;
+
+                case RIGHT:
+                    projectile.x += speed * Gdx.graphics.getDeltaTime();
+                    if (projectile.x + 32 > 640) {
+                        iter.remove();
+                    }
+                    break;
+            }
+
+            if (projectile.overlaps(rectangle)) {
+                hit.play();
+                iter.remove();
+                if (--health <= 0) {
+                    game.setScreen(new GameOverScreen(game));
+                    dispose();
                 }
+            }
+
+            if(TimeUtils.nanoTime() - lastTime > 1000000000){
+                timer--;
+                lastTime = TimeUtils.nanoTime();
             }
         }
     }
