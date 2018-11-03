@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Rectangle;
 
 public class Projectile extends Rectangle {
+
     public enum DIRECTION{
         UP,DOWN,LEFT,RIGHT,NONE
     }
