@@ -48,6 +48,7 @@ public class GameScreen implements Screen {
     private Rectangle player;
     private int playerBaseSpeed;
     private int playerSpeed;
+    private int maxHealth;
     private int health;
     private int timer;
 
@@ -102,6 +103,7 @@ public class GameScreen implements Screen {
         switch(difficulty){
             case BABY:
                 timer = 90;
+                maxHealth = 7;
                 health = 5;
                 speed = 200;
                 launchFrequency = 1000000000;
@@ -110,6 +112,7 @@ public class GameScreen implements Screen {
 
             case EASY:
                 timer = 120;
+                maxHealth = 6;
                 health = 4;
                 speed = 225;
                 launchFrequency = 750000000;
@@ -118,6 +121,7 @@ public class GameScreen implements Screen {
 
             case MEDIUM:
                 timer = 150;
+                maxHealth = 5;
                 health = 3;
                 speed = 250;
                 launchFrequency = 500000000;
@@ -126,6 +130,7 @@ public class GameScreen implements Screen {
 
             case HARD:
                 timer = 180;
+                maxHealth = 4;
                 health = 2;
                 speed = 275;
                 launchFrequency = 250000000;
@@ -134,6 +139,7 @@ public class GameScreen implements Screen {
 
             case EXTREME:
                 timer = 210;
+                maxHealth = 3;
                 health =1;
                 speed = 300;
                 launchFrequency = 10000000;
@@ -405,7 +411,9 @@ public class GameScreen implements Screen {
                         break;
 
                     case ONEUP:
-                        health++;
+                        if(health != maxHealth) {
+                            health++;
+                        }
                         break;
                 }
 
@@ -422,11 +430,16 @@ public class GameScreen implements Screen {
     @Override
     public void dispose(){
         playerSprite.dispose();
+        shieldedPlayerSprite.dispose();
         projectileSpriteRight.dispose();
         projectileSpriteDown.dispose();
         projectileSpriteUp.dispose();
         projectileSpriteLeft.dispose();
+        speedBoostSprite.dispose();
+        shieldSprite.dispose();
+        oneUpSprite.dispose();
         hit.dispose();
+        shieldHit.dispose();
         music.dispose();
     }
 
