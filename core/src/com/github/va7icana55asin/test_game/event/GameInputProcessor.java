@@ -27,6 +27,13 @@ public class GameInputProcessor implements InputProcessor {
             case Keys.DOWN:
                 screen.setDownMove(true);
                 break;
+            case Keys.P:
+                if(screen.isPaused()){
+                    screen.resume();
+                }else {
+                    screen.pause();
+                }
+                break;
         }
         return true;
     }

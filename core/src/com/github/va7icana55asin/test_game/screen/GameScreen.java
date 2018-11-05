@@ -1,6 +1,7 @@
 package com.github.va7icana55asin.test_game.screen;
 
-import com.badlogic.gdx.*;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
@@ -23,10 +24,13 @@ public class GameScreen implements Screen {
     private OrthographicCamera camera;
     private int screenWidth;
     private int screenHeight;
+    private boolean paused;
+
     private boolean leftMove;
     private boolean rightMove;
     private boolean upMove;
     private boolean downMove;
+
     private Texture playerSprite;
     private Texture shieldedPlayerSprite;
     private Texture projectileSpriteRight;
@@ -36,22 +40,27 @@ public class GameScreen implements Screen {
     private Texture speedBoostSprite;
     private Texture shieldSprite;
     private Texture oneUpSprite;
+
     private Music music;
     private Sound hit;
+    private Sound shieldHit;
+
     private Rectangle player;
-    private Array<Projectile> projectiles;
-    private long lastLaunchTime;
-    private int health;
-    private int timer;
     private int playerBaseSpeed;
     private int playerSpeed;
-    private long speedBoostActivatedTime;
-    private boolean shieldActive;//Add timing for shield and speed boost
-    private long shieldActivatedTime;
+    private int health;
+    private int timer;
+
+    private Array<Projectile> projectiles;
+    private long lastLaunchTime;
     private long lastTime;
     private int speed;
     private int launchFrequency;
+
     private Array<PowerUp> powerUps;
+    private long speedBoostActivatedTime;
+    private boolean shieldActive;
+    private long shieldActivatedTime;
     private long lastSpawnTime;
     private long powerUpFrequency;
 
@@ -68,6 +77,7 @@ public class GameScreen implements Screen {
         camera.setToOrtho(false,640f,480f);
         screenWidth = 640; //These will change based on settings passed in
         screenHeight = 480;
+        paused = false;
         Gdx.input.setInputProcessor(new GameInputProcessor(this));
         playerSprite = new Texture("player.png");
         shieldedPlayerSprite = new Texture("shieldedPlayer.png");
@@ -79,6 +89,7 @@ public class GameScreen implements Screen {
         shieldSprite = new Texture("shield.png");
         oneUpSprite = new Texture("life.png");
         hit = Gdx.audio.newSound(Gdx.files.internal("hit.wav"));
+        shieldHit = Gdx.audio.newSound(Gdx.files.internal("shield-hit.wav"));
         music = Gdx.audio.newMusic(Gdx.files.internal("basic-beat.wav"));
         music.setVolume(0.5f);
         music.setLooping(true);
@@ -207,80 +218,82 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta){
-        if(timer <= 0){
-            game.setScreen(new GameWinScreen(game));
-            dispose();
-        }else {
-            Gdx.gl.glClearColor(1, 0, 1, 1);
-            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-            camera.update();
-            game.batch.setProjectionMatrix(camera.combined);
-            game.batch.begin();
-            game.font.draw(game.batch, "Health: " + health, 0, screenHeight); //Draw the health counter or meter. Meter would probably require various textures and a switch statement
-            game.font.draw(game.batch, "Time Remaining: " + timer + " seconds", 0, screenHeight-20); //Draw the timer
-            if(shieldActive){
-                game.batch.draw(shieldedPlayerSprite, player.x, player.y);
-            }else{
-                game.batch.draw(playerSprite, player.x, player.y);
-            }
-
-            for (Projectile projectile : projectiles) {
-                game.batch.draw(projectile.texture, projectile.x, projectile.y);
-            }
-            for(PowerUp powerUp : powerUps){
-                game.batch.draw(powerUp.texture, powerUp.x, powerUp.y);
-            }
-            game.batch.end();
-
-            updateMotion();
-
-            if (player.x < 0) {
-                player.x = 0;
-            }
-
-            if (player.x > screenWidth - player.width) {
-                player.x = screenWidth - player.width;
-            }
-
-            if (player.y < 0) {
-                player.y = 0;
-            }
-
-            if (player.y > screenHeight - player.height) {
-                player.y = screenHeight - player.height;
-            }
-
-            if(TimeUtils.nanoTime() - lastLaunchTime > launchFrequency){
-                spawnProjectile();
-            }
-
-            if (TimeUtils.nanoTime() - lastSpawnTime > powerUpFrequency){
-                spawnPowerUp();
-            }
-
-            if(powerUps.size > 5){
-                powerUps.removeIndex(0);
-            }
-
-            moveProjectiles();
-            checkForPowerUpCollision();
-
-            if (shieldActive){
-                if(TimeUtils.nanoTime() - shieldActivatedTime > 10000000000L){
-                    shieldActive = false;
+        if(!paused){
+            if(timer <= 0){
+                game.setScreen(new GameWinScreen(game));
+                dispose();
+            }else {
+                Gdx.gl.glClearColor(1, 0, 1, 1);
+                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+                camera.update();
+                game.batch.setProjectionMatrix(camera.combined);
+                game.batch.begin();
+                game.font.draw(game.batch, "Health: " + health, 0, screenHeight); //Draw the health counter or meter. Meter would probably require various textures and a switch statement
+                game.font.draw(game.batch, "Time Remaining: " + timer + " seconds", 0, screenHeight - 20); //Draw the timer
+                if (shieldActive) {
+                    game.batch.draw(shieldedPlayerSprite, player.x, player.y);
+                } else {
+                    game.batch.draw(playerSprite, player.x, player.y);
                 }
-            }
 
-            if(playerSpeed != playerBaseSpeed){
-                if(TimeUtils.nanoTime() - speedBoostActivatedTime > 10000000000L){
-                    playerSpeed = playerBaseSpeed;
+                for (Projectile projectile : projectiles) {
+                    game.batch.draw(projectile.texture, projectile.x, projectile.y);
                 }
-            }
+                for (PowerUp powerUp : powerUps) {
+                    game.batch.draw(powerUp.texture, powerUp.x, powerUp.y);
+                }
+                game.batch.end();
 
-            if(TimeUtils.nanoTime() - lastTime > 1000000000){
-                timer--;
-                lastTime = TimeUtils.nanoTime();
-            }
+                updateMotion();
+
+                if (player.x < 0) {
+                    player.x = 0;
+                }
+
+                if (player.x > screenWidth - player.width) {
+                    player.x = screenWidth - player.width;
+                }
+
+                if (player.y < 0) {
+                    player.y = 0;
+                }
+
+                if (player.y > screenHeight - player.height) {
+                    player.y = screenHeight - player.height;
+                }
+
+                if (TimeUtils.nanoTime() - lastLaunchTime > launchFrequency) {
+                    spawnProjectile();
+                }
+
+                if (TimeUtils.nanoTime() - lastSpawnTime > powerUpFrequency) {
+                    spawnPowerUp();
+                }
+
+                if (powerUps.size > 5) {
+                    powerUps.removeIndex(0);
+                }
+
+                moveProjectiles();
+                checkForPowerUpCollision();
+
+                if (shieldActive) {
+                    if (TimeUtils.nanoTime() - shieldActivatedTime > 10000000000L) {
+                        shieldActive = false;
+                    }
+                }
+
+                if (playerSpeed != playerBaseSpeed) {
+                    if (TimeUtils.nanoTime() - speedBoostActivatedTime > 10000000000L) {
+                        playerSpeed = playerBaseSpeed;
+                    }
+                }
+
+                if (TimeUtils.nanoTime() - lastTime > 1000000000) {
+                    timer--;
+                    lastTime = TimeUtils.nanoTime();
+                }
+        }
         }
     }
 
@@ -362,14 +375,15 @@ public class GameScreen implements Screen {
             }
 
             if (projectile.overlaps(player)) {
-                hit.play();
                 iter.remove();
                 if(!shieldActive){
+                    hit.play();
                     if (--health <= 0) {
                         game.setScreen(new GameOverScreen(game));
                         dispose();
                     }
                 }else {
+                    shieldHit.play();
                     shieldActive = false;
                 }
             }
@@ -427,11 +441,17 @@ public class GameScreen implements Screen {
 
     @Override
     public void pause() {
+        paused = true;
+    }
 
+    public boolean isPaused() {
+        music.pause();
+        return paused;
     }
 
     @Override
     public void resume() {
-
+        music.play();
+        paused = false;
     }
 }
