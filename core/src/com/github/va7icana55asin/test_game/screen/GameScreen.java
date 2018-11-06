@@ -65,12 +65,6 @@ public class GameScreen implements Screen {
     private long lastSpawnTime;
     private long powerUpFrequency;
 
-    /*
-    TODO Modify title screen to select difficulty (This will take some figuring out) (These two will need scene2D for buttons)
-    TODO Maybe add settings for on the main menu (Would have to be written to file)
-    TODO Replace all hard screen size reference numbers to a variable when settings are determined
-     */
-
     public GameScreen(final Main game, DIFFICULTY difficulty) {
         this.game = game;
 
