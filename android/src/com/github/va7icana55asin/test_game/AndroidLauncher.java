@@ -4,7 +4,7 @@ import android.os.Bundle;
 
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
-import com.github.va7icana55asin.test_game.Main;
+import com.github.va7icana55asin.test_game.screen.Main;
 
 public class AndroidLauncher extends AndroidApplication {
 	@Override
